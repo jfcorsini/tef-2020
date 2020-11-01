@@ -2,15 +2,34 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
 #include "Adafruit_Si7021.h"
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+#define BLYNK_PRINT Serial
 
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
+char auth[] = "";
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "";
+char pass[] = "";
+
+void writeToBlynk(float data, float virtualPin)
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(virtualPin, data);
+}
+
 void setup(void)
 {
   Serial.begin(9600);
-  Serial.println("Accelerometer Test"); Serial.println("");
+  Blynk.begin(auth, ssid, pass);
 
   /* Initialise the sensor */
   if (!accel.begin() || !sensor.begin())
@@ -42,4 +61,9 @@ void loop(void)
   Serial.print("Temperature: ");Serial.print(sensor.readTemperature(), 2); Serial.print("  ");
   Serial.println("");
   delay(100);
+
+  Blynk.run();
+  writeToBlynk(event.acceleration.x, V3);
+  writeToBlynk(event.acceleration.y, V1);
+  writeToBlynk(event.acceleration.z, V2);
 }
